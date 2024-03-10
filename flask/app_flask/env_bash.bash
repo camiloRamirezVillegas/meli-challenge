@@ -9,8 +9,8 @@ generate_secret_key() {
 cat <<EOF > .env
 # Environment variables
 SECRET_KEY=$(generate_secret_key)
-DATABASE_URL=your_database_url_here
-DEBUG=True
+SQLALCHEMY_DATABASE_URI=site.db
+APP_STAGE=dev
 EOF
 
 echo ".env file created successfully with a randomly generated SECRET_KEY."
