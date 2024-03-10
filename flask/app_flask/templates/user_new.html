@@ -1,0 +1,60 @@
+{% extends "layout.html" %} {% block content %}
+
+<div class="container">
+  <div class="content-section">
+    <form method="POST" action="">
+      {{ form.hidden_tag() }}
+      <fieldset class="form-group">
+        <div class="form-group">
+          {{ form.name.label(class="form-control-label") }} {% if
+          form.name.errors %} {{ form.name(class="form-control form-control-md
+          is-invalid") }}
+          <div class="invalid-feedback">
+            {% for error in form.name.errors %}
+            <span>{{ error }}</span>
+            {% endfor %}
+          </div>
+          {% else %} {{ form.name(class="form-control form-control-md") }} {%
+          endif %}
+        </div>
+      </fieldset>
+
+      <fieldset class="form-group">
+        <div class="form-group">
+          {{ form.email.label(class="form-control-label") }} {% if
+          form.email.errors %} {{ form.email(class="form-control form-control-md
+          is-invalid") }}
+          <div class="invalid-feedback">
+            {% for error in form.email.errors %}
+            <span>{{ error }}</span>
+            {% endfor %}
+          </div>
+          {% else %} {{ form.email(class="form-control form-control-md") }} {%
+          endif %}
+        </div>
+      </fieldset>
+
+      <fieldset class="form-group">
+        <div class="form-group">
+          {{ form.password.label(class="form-control-label") }} {% if
+          form.password.errors %} {{ form.password(class="form-control
+          form-control-md is-invalid") }}
+          <div class="invalid-feedback">
+            {% for error in form.password.errors %}
+            <span>{{ error }}</span>
+            {% endfor %}
+          </div>
+          {% else %} {{ form.password(class="form-control form-control-md") }}
+          {% endif %}
+        </div>
+      </fieldset>
+      <br />
+      <button class="btn btn-outline-info">
+        <span> {{save_name}} </span>
+        <i class="fa-solid {{save_icon}}"></i>
+      </button>
+    </form>
+  </div>
+</div>
+
+{% endblock content %}

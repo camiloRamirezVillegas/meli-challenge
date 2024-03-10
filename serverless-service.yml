@@ -1,0 +1,465 @@
+service: ${self:custom.app}-services
+
+# TODO, Support for "package.include" and "package.exclude" will be removed in the next major release. Please use "package.patterns" instead
+# package:
+#   exclude:
+#     - node_modules/**
+
+provider:
+  name: aws
+  stage: ${opt:stage, 'dev'}
+  region: ${opt:region, 'us-east-1'}
+
+# functions:
+
+custom:
+  app: ${opt:app, 'meli-challenge'}
+  output:
+    handler: scripts/output-service.handler
+    file: .build/stack.json
+
+resources: # CloudFormation template syntax
+  Parameters:
+    VersionDeployed:
+      Type: String
+      Default: ${param:version}
+      Description: Version of the application being deployed
+    DomainName:
+      Type: String
+      Default: ${param:domain}
+      Description: DNS Domain
+    EmailApp:
+      Type: String
+      Default: ${param:email}
+      Description: Application email
+
+  Resources:
+    MyS3Bucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:service}-${self:provider.stage}-application-bucket
+        AccessControl: Private
+
+    EC2AppRole:
+      DependsOn: MyS3Bucket
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: ${self:service}-${self:provider.stage}-ec2-role
+        Path: /${self:service}/
+        AssumeRolePolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service:
+                  - ec2.amazonaws.com
+              Action: sts:AssumeRole
+        # Tags:
+        #   - Key: stage
+        #     Value: ${self:provider.stage}
+        #   - Key: service
+        #     Value: ${self:service}
+        Policies:
+          - PolicyName: ${self:service}-${self:provider.stage}-ec2-policy
+            PolicyDocument:
+              Version: "2012-10-17"
+              Statement:
+                - Sid: VisualEditor1
+                  Effect: Allow
+                  Action:
+                    - ec2:DescribeSpotInstanceRequests
+                    - ec2:CancelSpotInstanceRequests
+                    - ec2:GetConsoleOutput
+                    - ec2:RequestSpotInstances
+                    - ec2:RunInstances
+                    - ec2:StartInstances
+                    - ec2:StopInstances
+                    - ec2:TerminateInstances
+                    - ec2:CreateTags
+                    - ec2:DeleteTags
+                    - ec2:DescribeInstances
+                    - ec2:DescribeInstanceTypes
+                    - ec2:DescribeKeyPairs
+                    - ec2:DescribeRegions
+                    - ec2:DescribeImages
+                    - ec2:DescribeAvailabilityZones
+                    - ec2:DescribeSecurityGroups
+                    - ec2:DescribeSubnets
+                    - iam:ListInstanceProfilesForRole
+                    - iam:PassRole
+                    - ec2:GetPasswordData
+                    - ecr:GetAuthorizationToken
+                  Resource:
+                    - "*"
+                - Sid: VisualEditor2
+                  Effect: Allow
+                  Action:
+                    - route53:GetChange
+                    - route53:ListHostedZones
+                  Resource:
+                    - "*"
+                - Sid: VisualEditor3
+                  Effect: Allow
+                  Action:
+                    - route53:ChangeResourceRecordSets
+                  Resource:
+                    Fn::Join:
+                      - ""
+                      - - "arn:aws:route53:::hostedzone/"
+                        - !ImportValue
+                          Fn::Sub: "Route53HostedZone-${self:custom.app}-${self:provider.stage}"
+                - Sid: ApplicationAccess
+                  Effect: Allow
+                  Action:
+                    - s3:GetObject
+                    - s3:ListBucket
+                    - s3:PutObject
+                    - s3:DeleteObject
+                  Resource:
+                    - !GetAtt MyS3Bucket.Arn
+                    - Fn::Join:
+                        - ""
+                        - - !GetAtt MyS3Bucket.Arn
+                          - "/*"
+                            # Fn::Join:
+                            #   - ""
+                            #   - - "arn:aws:route53:::hostedzone/"
+                            #     - !ImportValue
+                            #       Fn::Sub: "Route53HostedZone-${self:custom.app}-${self:provider.stage}"
+
+                            # TODO, only give permits over the self ec2 instance, find how to refer the Instance, or create the arn string
+                            # TODO, review the list of permmits. Adjust to set only the requiereds.
+                            # TODO, poner tags
+                            # TODO, quitar el *, definir el recurso especifico
+
+    AppEc2InstanceProfile:
+      DependsOn: EC2AppRole
+      Type: AWS::IAM::InstanceProfile
+      Properties:
+        Roles:
+          - Ref: EC2AppRole
+        # TODO, maybe define path ?
+
+    AppInstanceSG:
+      Type: AWS::EC2::SecurityGroup
+      Properties:
+        GroupDescription: Security group that allows the income trafic for the ec2 instance
+        GroupName: ${self:service}-${self:provider.stage}-ec2-sg
+        SecurityGroupIngress:
+          - IpProtocol: tcp
+            FromPort: 22
+            ToPort: 22
+            # CidrIp: 181.237.195.92/32
+            CidrIp: 0.0.0.0/0
+          - IpProtocol: tcp
+            FromPort: 80
+            ToPort: 80
+            CidrIp: 0.0.0.0/0
+          # - IpProtocol: tcp
+          #   FromPort: 8080
+          #   ToPort: 8080
+          #   CidrIp: 0.0.0.0/0
+          - IpProtocol: tcp
+            FromPort: 443
+            ToPort: 443
+            CidrIp: 0.0.0.0/0
+          # - IpProtocol: tcp
+          #   FromPort: 5000
+          #   ToPort: 5000
+          #   CidrIp: 0.0.0.0/0
+        Tags:
+          - Key: stage
+            Value: ${self:provider.stage}
+          - Key: service
+            Value: ${self:service}
+
+        # TODO, se podria aca crear tambien el bucket de s3 de los deployment, la VPC, los outputs de estos datos en un ssm puede ser para no generar dependencia entre stacks
+        # TODO, no olvidar poner lo del limitante de quien tiene acceso por ips por ssh
+        # TODO, poner tags
+        # TODO, crear el recurso de key pair para controlar tambien su borrada segun se requiera, y tenerlo relacionado al stack
+
+    AppInstance:
+      DependsOn:
+        - AppInstanceSG
+        - AppEc2InstanceProfile
+      Type: AWS::EC2::Instance
+      Metadata:
+        Comment: Configure docker and the cfn related files
+        AWS::CloudFormation::Init:
+          config:
+            packages:
+              yum:
+                docker: []
+            services:
+              sysvinit:
+                docker:
+                  enabled: "true"
+                  ensureRunning: "true"
+                cfn-hup:
+                  enabled: "true"
+                  ensureRunning: "true"
+                  files:
+                    - /etc/cfn/cfn-hup.conf
+                    - /etc/cfn/hooks.d/cfn-auto-reloader.conf
+            files:
+              "/home/docker-clean.sh":
+                content: !Sub |
+                  #!/bin/bash
+
+                  # Stop all running containers
+                  running_containers=$(docker ps -q)
+                  if [ -n "$running_containers" ]; then
+                    docker stop $running_containers
+                  fi
+
+                  # Remove all stopped containers
+                  stopped_containers=$(docker ps -a -q)
+                  if [ -n "$stopped_containers" ]; then
+                    docker rm $stopped_containers
+                  fi
+
+                  # Remove all unused images
+                  unused_images=$(docker image prune -a -f | grep "Total reclaimed space:")
+                  if [ -n "$unused_images" ]; then
+                    echo "Unused images cleaned:"
+                    echo "$unused_images"
+                  else
+                    echo "No unused images to clean."
+                  fi
+                mode: "000400"
+                owner: root
+                group: root
+              "/etc/cfn/bash-cfn-hup.sh":
+                content: !Sub
+                  - |
+                    #!/bin/bash
+                    echo Starting cfn-hup bash script version: ${param:version}
+                    echo Starting cfn-hup bash script version: ${VersionApp}
+                    echo Stoping all running docker containers
+                    # docker stop $(docker ps -aq)
+                    docker ps -a
+                    docker version
+                  - VersionApp: !Ref VersionDeployed
+                mode: "000400"
+                owner: root
+                group: root
+              "/etc/cfn/cfn-hup.conf":
+                content: !Sub |
+                  [main]
+                  stack=${AWS::StackName}
+                  region=${AWS::Region}
+                  verbose=true
+                  interval=1
+                mode: "000400"
+                owner: "root"
+                group: "root"
+              "/etc/cfn/hooks.d/cfn-auto-reloader.conf":
+                content: !Sub |
+                  [cfn-auto-reloader-hook]
+                  triggers=post.update
+                  path=Resources.AppInstance.Metadata.AWS::CloudFormation::Init
+                  action=/opt/aws/bin/cfn-init --stack ${AWS::StackName} --resource AppInstance --region ${AWS::Region} --verbose
+                mode: "000400"
+                owner: "root"
+                group: "root"
+              # "/etc/letsencrypt/live/nginx.conf":
+              #   content: !Sub |
+              #     upstream app_server {
+              #         server localhost:8000;
+              #     }
+
+              #     server {
+              #         listen 80;
+              #         server_name ${DomainName} www.${DomainName};
+              #         # Redirect HTTP traffic to HTTPS
+              #         return 301 https://$host$request_uri;
+              #     }
+
+              #     server {
+              #         listen 443 ssl;
+              #         server_name ${DomainName} www.${DomainName};
+
+              #         ssl_certificate /volume/${DomainName}/fullchain.pem;
+              #         ssl_certificate_key /volume/${DomainName}/privkey.pem;
+
+              #         # ssl_certificate /etc/nginx/ssl/${DomainName}/fullchain.pem;
+              #         # ssl_certificate_key /etc/nginx/ssl/${DomainName}/privkey.pem;
+
+              #         # Enable SSL protocols and ciphers
+              #         ssl_protocols TLSv1.2 TLSv1.3;
+              #         ssl_prefer_server_ciphers off;
+              #         ssl_ciphers 'EECDH+AESGCM:EDH+AESGCM:AES256+EECDH:AES256+EDH';
+
+              #         # Enable HSTS to improve security
+              #         add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+
+              #         # SSL session cache
+              #         ssl_session_cache shared:SSL:10m;
+              #         ssl_session_timeout 10m;
+
+              #         # Enable OCSP stapling
+              #         ssl_stapling on;
+              #         ssl_stapling_verify on;
+              #         resolver 8.8.8.8 8.8.4.4 valid=300s;
+              #         resolver_timeout 5s;
+
+              #         # Set the root directory for your website
+              #         root /var/www/${DomainName}/public;
+
+              #         location /static/ {
+              #             alias /home/app/web/fridas/static/;
+              #         }
+
+              #         location / {
+              #             proxy_pass http://app_server;
+              #             proxy_set_header Host $host;
+              #             proxy_set_header X-Real-IP $remote_addr;
+              #             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+              #             proxy_set_header X-Forwarded-Proto $scheme;
+              #             proxy_redirect off;
+              #         }
+              #     }
+              #   mode: "000400"
+              #   owner: "root"
+              #   group: "root"
+
+            # Commands run in alphabetical order, not in the one provided in the script. So, for order, they must be in alphabetical in the template as well.
+            commands:
+              1_docker_for_ec2_user:
+                command: usermod -G docker ec2-user
+              2_docker_for_ec2_user:
+                command: systemctl enable docker
+              3_docker_for_ec2_user:
+                command: systemctl start docker
+              4_docker_for_ec2_user:
+                command: docker ps
+              5_aws_docker_login:
+                command: !Sub aws ecr get-login-password --region ${AWS::Region} | docker login --username AWS --password-stdin ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com
+              6_docker_clean:
+                command: chmod +x /home/docker-clean.sh && bash /home/docker-clean.sh
+              # docker_for_ec2_user:
+              #   command: usermod -G docker ec2-user
+              7_ecr_image_pull:
+                command:
+                  Fn::Join:
+                    - ""
+                    - - "docker pull "
+                      - !Sub ${AWS::AccountId}
+                      - ".dkr.ecr."
+                      - !Sub ${AWS::Region}
+                      - ".amazonaws.com/"
+                      - !Sub ${self:custom.app}
+                      - "-main-ecr-"
+                      - !Sub ${self:provider.stage}
+                      - ":${param:version}"
+              8_ecr_image_run:
+                command:
+                  Fn::Join:
+                    - ""
+                    - - "docker run --restart on-failure:5 -d -p 80:80 -p 443:443 -v '/etc/letsencrypt:/volume' "
+                      - !Sub ${AWS::AccountId}
+                      - ".dkr.ecr."
+                      - !Sub ${AWS::Region}
+                      - ".amazonaws.com/"
+                      - !Sub ${self:custom.app}
+                      - "-main-ecr-"
+                      - !Sub ${self:provider.stage}
+                      - ":${param:version}"
+              9_final_cache_clean:
+                command: sudo sh -c "sync; echo 3 > /proc/sys/vm/drop_caches"
+
+              # 10_nginx_restart:
+              #   command: docker exec "sudo service nginx restart"
+
+              # sudo nginx -t # Test the configuration
+              # sudo systemctl reload nginx # Reload Nginx
+
+            # TODO, enchance these commands, add test, and find more to do
+            # TODO, change the verbose value of the cfn-hup.conf file for a configuration value that depends on the production value
+            # TODO, revisar si poner lo de el signal para que el stack update termine con el signal, aja, evaluar que mas falta
+            # TODO, poner lo de persistencia del servicio de cfn-hup
+
+      # CreationPolicy:
+      #   ResourceSignal:
+      #     Timeout: PT10M
+      Properties:
+        # ImageId: ami-053b0d53c279acc90 # Ubuntu
+        # ImageId: ami-0715c1897453cabd1 # Amazon Linux 2
+        ImageId: ami-04cb4ca688797756f # Amazon Linux 3
+
+        KeyName: ec2-flask
+        InstanceType: t2.micro
+        SecurityGroupIds:
+          - Ref: AppInstanceSG
+        IamInstanceProfile:
+          Ref: AppEc2InstanceProfile
+        UserData:
+          Fn::Base64: !Sub |
+            #!/bin/bash -x
+            yum update -y aws-cfn-bootstrap
+
+            sudo python3 -m venv /opt/certbot/
+            sudo /opt/certbot/bin/pip install --upgrade pip
+            sudo /opt/certbot/bin/pip install certbot certbot
+            sudo /opt/certbot/bin/pip install certbot-dns-route53
+            sudo ln -s /opt/certbot/bin/certbot /usr/bin/certbot
+            sudo certbot certonly --dns-route53 --agree-tos -m ${EmailApp} --non-interactive -d ${DomainName}
+
+            /opt/aws/bin/cfn-init --stack ${AWS::StackName} --resource AppInstance --region ${AWS::Region} --verbose || error_exit 'Failed to run cfn-init'
+            /opt/aws/bin/cfn-hup --verbose || error_exit 'Failed to start cfn-hup'
+
+        Tags:
+          - Key: stage
+            Value: ${self:provider.stage}
+          - Key: service
+            Value: ${self:service}
+        PropagateTagsToVolumeOnCreation: true
+
+    MyEIPAssociation:
+      Type: AWS::EC2::EIPAssociation
+      Properties:
+        InstanceId: !Ref AppInstance
+        EIP: !ImportValue
+          Fn::Sub: "PublicIP-${self:custom.app}-${self:provider.stage}"
+
+    # MyParameter:
+    #   Type: AWS::SSM::Parameter
+    #   Properties:
+    #     Name: "/${self:service}-${self:provider.stage}/s3-bucket-name"
+    #     Type: String
+    #     Value: !Ref MyS3Bucket
+
+  Outputs:
+    InstanceId:
+      Description: ID of the created EC2 instance
+      Value: !Ref AppInstance
+# ------------
+# TODO, review the permits of the mode assigned to the files creation in the Init section
+# TODO, include a way of recovery from when it cant pull the image from ecr
+
+# TODO, separar la actual macro configuration set en multiples configuraciones. Esto cómo se usaría ?
+
+# TODO,
+# ---------------------Command Output-----------------------
+# 2023-08-31 09:48:40,247 P61673 [INFO]   WARNING! Your password will be stored unencrypted in /root/.docker/config.json.
+# 2023-08-31 09:48:40,247 P61673 [INFO]   Configure a credential helper to remove this warning. See
+# 2023-08-31 09:48:40,247 P61673 [INFO]   https://docs.docker.com/engine/reference/commandline/login/#credentials-store
+
+# TODO, maybe update docker each time theres an service update ?
+
+# TODO, remove .env, use secrets, aws parameter store ? take out secrets from image
+#  "gitLeaks",
+
+# TODO, Web application penetration tests must include all vulnerabilities (SQLi, XSS, CSRF, etc.)
+
+# TODO, change all join [] into multiline syntaxys
+#  TODO, valores quemados, numeros, valores, revisar, no debe haber nada hard coded
+# TODO, cambiar en las configuraciones donde sea una ip, cambiarlo por el dominio. Por ejemplo en nginx.
+# cuando se manda el correo, la url debe ser la que tiene el dominio, no la ip publica
+
+# TODO, probar el destroy del reverse DNS record de le EIP cuando se borre el stack por ej
+# TODO, crear script de destroy
+# TODO, mejorar la version de amazon linux 2 a la 3 ?
+# TODO, move the EIP creation to this section, so it can be associated each time is created.
+#       When reupdating the association, the update resource deattatch the ip while doing it
+

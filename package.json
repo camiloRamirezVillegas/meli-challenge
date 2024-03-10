@@ -1,0 +1,14 @@
+{
+  "name": "meli-challenge",
+  "version": "1.0.0",
+  "description": "To run the golang api",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "serverless": "^3.38.0"
+  }
+}

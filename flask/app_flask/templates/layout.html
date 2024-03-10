@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    {% if title %}
+    <title>Meli Challenge - {{ title }}</title>
+    {% else %}
+    <title>Meli Challenge</title>
+    {% endif %}
+    <link
+      rel="icon"
+      href="{{ url_for('static', filename='assets/logo/logo.jpg') }}"
+      type="image/x-icon"
+    />
+
+    <script
+      src="https://kit.fontawesome.com/97c05a6acc.js"
+      crossorigin="anonymous"
+    ></script>
+
+    <!-- Bootstrap CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN"
+      crossorigin="anonymous"
+    />
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+      crossorigin="anonymous"
+    ></script>
+    <!-- Bootstrap CSS -->
+
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="{{ url_for('static', filename='style/main.css') }}"
+    />
+  </head>
+
+  <body>
+    {% if current_user.is_authenticated %}
+
+    <header class="site-header mt-1">
+      <div class="row">
+        <div class="col-4 text-center align-middle">
+          <a href="{{ url_for('users.users_management') }}">
+            <button class="btn btn-outline-info">
+              <i class="fa-solid fa-house"></i>
+            </button>
+          </a>
+        </div>
+        <div class="col-4 text-center align-middle">
+          <h1>{{current_user.name}}</h1>
+        </div>
+        <a
+          class="col-4 text-center align-middle nav-link"
+          href="{{ url_for('authentication.logout') }}"
+        >
+          Cerrar Sesión</a
+        >
+      </div>
+    </header>
+    <hr />
+    {% endif %}
+
+    <main role="main">
+      {% with messages = get_flashed_messages(with_categories=true) %} {% if
+      messages %} {% for category, message in messages %}
+      <div class="alert alert-{{ category }}">{{ message }}</div>
+      {% endfor %} {% endif %} {% endwith %} {% block content %}{% endblock %}
+    </main>
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script
+      src="https://code.jquery.com/jquery-3.6.3.min.js"
+      integrity="sha256-pvPw+upLPUjgMXY0G+8O0xUf+/Im1MZjXxxgOcBQBXU="
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+      integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+      integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+      crossorigin="anonymous"
+    ></script>
+    <script src="{{ url_for('static', filename='libs/bootstrap-datepicker/js/bootstrap-datepicker.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='libs/bootstrap-datepicker/locales/bootstrap-datepicker.es.min.js') }}"></script>
+  </body>
+</html>

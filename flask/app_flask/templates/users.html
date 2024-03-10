@@ -1,0 +1,39 @@
+{% extends "layout.html" %} {% block content %}
+<div class="container">
+  <div class="content-section">
+    <div class="d-flex">
+      <div class="mr-auto p-2">
+        <h2>Users Management</h2>
+      </div>
+      <div class="p-2">
+        <a href="{{ url_for('users.user_new') }}">
+          <button class="btn btn-outline-info">
+            Create User <i class="fa-solid fa-plus"></i>
+          </button>
+        </a>
+      </div>
+    </div>
+    <br />
+    <div class="table-responsive">
+      <table class="table table-sm table-hover">
+        <thead>
+          <tr>
+            <th class="text-center" scope="col">Username</th>
+            <th class="text-center" scope="col">Email</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for user in users %}
+          <tr>
+            <th class="text-center align-middle">{{user.name}}</th>
+            <td class="text-center align-middle">{{user.email}}</td>
+          </tr>
+          {% endfor%}
+        </tbody>
+      </table>
+    </div>
+    {% if not current_user.client_id %} {% endif %}
+  </div>
+</div>
+
+{% endblock content %}

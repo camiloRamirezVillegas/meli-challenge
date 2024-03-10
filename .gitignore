@@ -1,0 +1,6 @@
+node_modules
+meli_venv
+__pycache__
+.serverless
+**.pem
+**.ppk
