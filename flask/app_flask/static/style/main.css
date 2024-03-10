@@ -588,3 +588,5 @@ input::file-selector-button:active {
   background-color: var(--main-contrast-color-secondary);
   border-color: var(--main-contrast-color-secondary);
 }
+
+/* TODO, eliminar estilos no usados */

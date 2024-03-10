@@ -21,9 +21,9 @@ CGO_ENABLED=1 go build
 go build
 .\meli-go.exe
 
-# Deploy
+## Deploy
 
-sls deploy --config serverless-service.yml --stage $STAGE --region $REGION --app $APPLICATION --param="version=$VERSION" --param="domain=$DOMAIN" --param="email=$EMAIL_APP" --verbose
+sls deploy --config serverless-service.yml --stage dev --region us-east-1 --app meli-challenge --verbose
 
 ...
 
@@ -38,3 +38,11 @@ cgo_enabled para aws linux
 
     sudo apt-get update
     sudo apt-get install build-essential libsqlite3-dev
+
+
+
+
+            /home/meli-challenge/golang/meli-go
+
+
+            yum update -y aws-cfn-bootstrap
