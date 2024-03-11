@@ -57,10 +57,10 @@ sudo /home/meli-challenge/golang/meli-go
 
             cd /home/meli-challenge/golang && sudo /home/meli-challenge/golang/meli-go &
 
-nginx -g "daemon on;" && gunicorn --bind 0.0.0.0:8000 run:app --log-level=debug --workers=3
-
-gunicorn --bind 0.0.0.0:8000 run:app --log-level=debug --workers=3
+nginx -g "daemon on;" && gunicorn --bind 0.0.0.0:5000 run:app --log-level=debug --workers=3
 
 cd /home/meli-challenge/golang && sudo /home/meli-challenge/golang/meli-go &
 
 sudo /home/meli-challenge/golang/meli-go &
+
+cd /home/meli-challenge/flask && gunicorn --bind 0.0.0.0:5000 run:app --log-level=debug --workers=3 --daemon
