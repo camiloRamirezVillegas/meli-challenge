@@ -77,7 +77,7 @@ resources: # CloudFormation template syntax
             cd /home/meli-challenge/golang && sudo /home/meli-challenge/golang/meli-go &
             cd /home/meli-challenge/flask && gunicorn --bind 0.0.0.0:5000 run:app --log-level=debug --workers=3 --daemon
             sudo cp /home/meli-challenge/nginx/meli-nginx.conf /etc/nginx/conf.d/meli-nginx.conf
-            sudo systemctl reload nginx
+            sudo systemctl start nginx
             echo "Fin UserData script"
         Tags:
           - Key: stage
