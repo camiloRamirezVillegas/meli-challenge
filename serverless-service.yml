@@ -39,6 +39,10 @@ resources: # CloudFormation template syntax
             FromPort: 6000
             ToPort: 6000
             CidrIp: 0.0.0.0/0
+          - IpProtocol: tcp
+            FromPort: 8080
+            ToPort: 8080
+            CidrIp: 0.0.0.0/0
         Tags:
           - Key: stage
             Value: ${self:provider.stage}
@@ -60,13 +64,18 @@ resources: # CloudFormation template syntax
         UserData:
           Fn::Base64: !Sub |
             #!/bin/bash -x
-            sudo yum update
+            sudo yum update -y
             sudo yum install git -y
             cd /home && sudo git clone https://github.com/camiloRamirezVillegas/meli-challenge.git
             sudo yum install -y golang
             sudo yum install -y python3-pip
+            sudo yum install -y nginx
+            sudo pip install gunicorn
+            cd /home/meli-challenge/flask && sudo pip install -r requirements.txt
+            cd /home/meli-challenge/flask/app_flask && sudo bash env_bash.bash
             cd /home/meli-challenge/golang && sudo CGO_ENABLED=1 go build -v
-            cd /home/meli-challenge/flask && pip install -r requirements.txt
+            cd /home/meli-challenge/golang && sudo /home/meli-challenge/golang/meli-go &
+            echo "Fin UserData script"
         Tags:
           - Key: stage
             Value: ${self:provider.stage}

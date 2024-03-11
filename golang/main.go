@@ -27,7 +27,7 @@ func main() {
     mux.HandleFunc("/users", UsersHandler)
 
     // Servidor escuchando en el puerto 8080
-    http.ListenAndServe(":6000", mux)
+    http.ListenAndServe(":8080", mux)
 
 }
 

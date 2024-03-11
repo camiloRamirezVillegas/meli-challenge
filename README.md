@@ -46,3 +46,21 @@ cgo_enabled para aws linux
 
 
             yum update -y aws-cfn-bootstrap
+
+correr el script de crear base de datos al inicio de la ec2 instance
+
+sudo python3 /home/meli-challenge/flask/run.py
+
+sudo /home/meli-challenge/golang/meli-go
+
+...
+
+            cd /home/meli-challenge/golang && sudo /home/meli-challenge/golang/meli-go &
+
+nginx -g "daemon on;" && gunicorn --bind 0.0.0.0:8000 run:app --log-level=debug --workers=3
+
+gunicorn --bind 0.0.0.0:8000 run:app --log-level=debug --workers=3
+
+cd /home/meli-challenge/golang && sudo /home/meli-challenge/golang/meli-go &
+
+sudo /home/meli-challenge/golang/meli-go &
