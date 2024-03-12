@@ -4,6 +4,7 @@ import "database/sql"
 
 var db *sql.DB
 
+// Retorna el objeto de conexión con la base de datos sqlite
 func GetConnection() *sql.DB {
     // Para evitar realizar una nueva conexión en cada llamada a
     // la función GetConnection.
@@ -16,14 +17,14 @@ func GetConnection() *sql.DB {
     // en su lugar que inicialice la variable db que declaramos a
     // nivel de paquete.
     var err error
+
     // Conexión a la base de datos
-
 	dbPath := "../instance/site.db"
-
     db, err = sql.Open("sqlite3", dbPath)
-    // db, err = sql.Open("sqlite3", "site.db")
+
     if err != nil {
         panic(err)
     }
+
     return db
 }

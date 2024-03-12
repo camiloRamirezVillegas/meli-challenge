@@ -1,28 +1,26 @@
 from flask_wtf import FlaskForm
-from flask_wtf.file import FileField, FileAllowed
-from flask_login import current_user
-from wtforms import StringField, PasswordField, SubmitField, BooleanField, SelectField
-from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError, Optional
+from wtforms import StringField, PasswordField, SubmitField
+from wtforms.validators import DataRequired, Length, Email, ValidationError
 
 from app_flask.models import User
 
 class newUserForm(FlaskForm):
-    name = StringField('Name',
+    name = StringField('Nombre',
                            validators=[DataRequired(), Length(min=2, max=20)])
-    email = StringField('Email',
+    email = StringField('Correo Electrónico',
                         validators=[DataRequired(), Email()])
-    password = PasswordField('Password',
+    password = PasswordField('Contraseña',
                            validators=[DataRequired(), Length(min=5, max=20)])
-    submit = SubmitField('Sign Up')
+    submit = SubmitField('Crear Usuario')
 
     def validate_name(self, name):
         user = User.query.filter_by(name=name.data).first()
         if user:
             raise ValidationError(
-                'That user name is taken. Please choose a different one.')
+                'Nombre no disponible, escoge uno diferente.')
 
     def validate_email(self, email):
         user = User.query.filter_by(email=email.data).first()
         if user:
             raise ValidationError(
-                'That email is taken. Please choose a different one.')
+                'Email no disponible, escoge uno diferente.')

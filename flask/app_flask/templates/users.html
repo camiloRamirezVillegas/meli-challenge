@@ -3,12 +3,12 @@
   <div class="content-section">
     <div class="d-flex">
       <div class="mr-auto p-2">
-        <h2>Users Management</h2>
+        <h2>Gestión Usuarios</h2>
       </div>
       <div class="p-2">
         <a href="{{ url_for('users.user_new') }}">
           <button class="btn btn-outline-info">
-            Create User <i class="fa-solid fa-plus"></i>
+            Crear Usuario <i class="fa-solid fa-plus"></i>
           </button>
         </a>
       </div>
@@ -18,8 +18,8 @@
       <table class="table table-sm table-hover">
         <thead>
           <tr>
-            <th class="text-center" scope="col">Username</th>
-            <th class="text-center" scope="col">Email</th>
+            <th class="text-center" scope="col">Nombre</th>
+            <th class="text-center" scope="col">Correo</th>
           </tr>
         </thead>
         <tbody>
@@ -32,7 +32,6 @@
         </tbody>
       </table>
     </div>
-    {% if not current_user.client_id %} {% endif %}
   </div>
 </div>
 

@@ -1,10 +1,5 @@
 service: ${self:custom.app}-services
 
-# TODO, Support for "package.include" and "package.exclude" will be removed in the next major release. Please use "package.patterns" instead
-# package:
-#   exclude:
-#     - node_modules/**
-
 provider:
   name: aws
   stage: ${opt:stage, 'dev'}
@@ -31,18 +26,18 @@ resources: # CloudFormation template syntax
             FromPort: 80
             ToPort: 80
             CidrIp: 0.0.0.0/0
-          - IpProtocol: tcp
-            FromPort: 5000
-            ToPort: 5000
-            CidrIp: 0.0.0.0/0
-          - IpProtocol: tcp
-            FromPort: 6000
-            ToPort: 6000
-            CidrIp: 0.0.0.0/0
-          - IpProtocol: tcp
-            FromPort: 8080
-            ToPort: 8080
-            CidrIp: 0.0.0.0/0
+          # - IpProtocol: tcp
+          #   FromPort: 5000
+          #   ToPort: 5000
+          #   CidrIp: 0.0.0.0/0
+          # - IpProtocol: tcp
+          #   FromPort: 6000
+          #   ToPort: 6000
+          #   CidrIp: 0.0.0.0/0
+          # - IpProtocol: tcp
+          #   FromPort: 8080
+          #   ToPort: 8080
+          #   CidrIp: 0.0.0.0/0
         Tags:
           - Key: stage
             Value: ${self:provider.stage}

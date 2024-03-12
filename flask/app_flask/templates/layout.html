@@ -8,9 +8,9 @@
       content="width=device-width, initial-scale=1, shrink-to-fit=no"
     />
     {% if title %}
-    <title>Meli Challenge - {{ title }}</title>
+    <title>Reto Meli - {{ title }}</title>
     {% else %}
-    <title>Meli Challenge</title>
+    <title>Reto Meli</title>
     {% endif %}
     <link
       rel="icon"
@@ -47,7 +47,7 @@
   <body>
     {% if current_user.is_authenticated %}
 
-    <header class="site-header mt-1">
+    <header class="mt-1">
       <div class="row">
         <div class="col-4 text-center align-middle">
           <a href="{{ url_for('users.users_management') }}">
@@ -60,7 +60,7 @@
           <h1>{{current_user.name}}</h1>
         </div>
         <a
-          class="col-4 text-center align-middle nav-link"
+          class="col-4 text-center align-middle header-text"
           href="{{ url_for('authentication.logout') }}"
         >
           Cerrar Sesión</a
@@ -78,12 +78,6 @@
     </main>
 
     <!-- Optional JavaScript -->
-    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
-    <script
-      src="https://code.jquery.com/jquery-3.6.3.min.js"
-      integrity="sha256-pvPw+upLPUjgMXY0G+8O0xUf+/Im1MZjXxxgOcBQBXU="
-      crossorigin="anonymous"
-    ></script>
     <script
       src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
       integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"

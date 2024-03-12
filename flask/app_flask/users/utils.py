@@ -1,20 +1,18 @@
 from app_flask.models import User
-from app_flask import db
-
-
-# @login_manager.user_loader
-# def load_user(user_id):
-#     current_user_load = User.query.get(int(user_id))
-#     # print("current_user_load: ", current_user_load)
-
-#     return current_user_load
-
+from app_flask import db, bcrypt
 
 def get_all_users():
-    #     users_list = db.session.query(User)\
-    #     .join(Client, (Client.id == User.client_id)).all()
-    # return users_list
-
-    users_list = db.session.query(User)\
-        .all()
+    users_list = db.session.query(User).all()
     return users_list
+
+def get_user_by_email(email):
+    user = User.query.filter_by(email=email).first()
+    return user
+
+def create_user(user_form):
+    hashed_password = bcrypt.generate_password_hash(user_form.password.data).decode('utf-8')
+    user = User(name=user_form.name.data,
+                email=user_form.email.data,
+                password=hashed_password)
+    db.session.add(user)
+    db.session.commit()
