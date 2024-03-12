@@ -14,6 +14,8 @@ Para copilar la aplicación Golang, navegue hasta la carpeta /golang del proyect
 Una vez copilado, ejecute el servidor usando:
 <code>./meli-go</code>
 
+La API podrá ser consultada en la ruta http://localhost:8080.
+
 ### Flask
 
 Para ejecutar la aplicación Flask, navegue hasta la carpeta /flask del proyecto y ejecute los siguientes comandos:
@@ -31,8 +33,6 @@ La aplicación permite crear y consultar usuarios. El uso de la misma está prot
 /login: Página de inicio de sesión.
 /users: Permite consultar todos los usuarios creados.
 /users/new: Permite crear nuevos usuarios.
-
-La API podrá ser consultada en la ruta http://localhost:8080.
 
 ## Golang API
 
